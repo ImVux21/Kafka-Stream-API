@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: kafka-stream-api
+  profiles:
+    active: local
+
+#application-local.yml
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  kafka:
+    streams:
+      bootstrap-servers: localhost:9092
+      application-id: kafka-stream-api
