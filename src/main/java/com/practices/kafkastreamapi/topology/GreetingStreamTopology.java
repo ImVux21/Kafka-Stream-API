@@ -1,5 +1,6 @@
 package com.practices.kafkastreamapi.topology;
 
+import com.practices.kafkastreamapi.domain.Greeting;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -8,6 +9,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Printed;
 import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -29,14 +31,25 @@ public class GreetingStreamTopology {
     public void process(StreamsBuilder streamsBuilder) {
         log.info("Creating Greeting Stream Topology");
 
-        KStream<String, String> stream = streamsBuilder.stream(
+        KStream<String, Greeting> stream = streamsBuilder.stream(
                 GREETING_TOPIC,
-                Consumed.with(Serdes.String(), Serdes.String())
+                Consumed.with(
+                        Serdes.String(),
+//                        Serdes.String()
+                        new JsonSerde<>(Greeting.class)
+                )
         );
-        stream.print(Printed.<String, String>toSysOut().withLabel("Greeting Stream"));
+        stream.print(Printed.<String, Greeting>toSysOut().withLabel("Greeting Stream"));
 
-        KStream<String, String> modifiedStream = stream.mapValues((key, value) -> value.toUpperCase());
-        modifiedStream.print(Printed.<String, String>toSysOut().withLabel("Modified Stream"));
-        modifiedStream.to(GREETING_UPPERCASE_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+        KStream<String, Greeting> modifiedStream = stream.mapValues((key, value) ->
+//                value.toUpperCase()
+                new Greeting(value.message().toUpperCase(), value.timeStamp())
+        );
+        modifiedStream.print(Printed.<String, Greeting>toSysOut().withLabel("Modified Stream"));
+        modifiedStream.to(GREETING_UPPERCASE_TOPIC, Produced.with(
+                Serdes.String(),
+//                Serdes.String()
+                new JsonSerde<>(Greeting.class)
+        ));
     }
 }
