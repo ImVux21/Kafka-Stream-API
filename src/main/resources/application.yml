@@ -14,3 +14,8 @@ spring:
     streams:
       bootstrap-servers: localhost:9092
       application-id: kafka-stream-api
+    properties:
+      default:
+        deserialization:
+          exception:
+            handler: org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
